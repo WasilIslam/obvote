@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Design the interface using a clean, minimal Google-homepage-style philosophy with a calm, trustworthy civic feel, following a fully mobile-first layout. Use only the styles and colors already defined in the global.global.css file and do not introduce any new theme variables. All icons must use React Icons only — no SVG files, no image-based icons, and no custom inline SVGs. Maintain generous spacing, simple structure, and avoid unnecessary visual elements.

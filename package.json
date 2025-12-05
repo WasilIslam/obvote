@@ -3,24 +3,42 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3007",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup-db": "tsx scripts/setup-db.ts",
+    "init-db": "tsx scripts/init-db.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:check": "drizzle-kit check",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@drizzle-team/studio": "^1.0.3",
+    "@prisma/client": "^7.1.0",
+    "@tanstack/react-table": "^8.21.3",
+    "dotenv": "^16.6.1",
+    "drizzle-orm": "^0.45.0",
+    "firebase": "^12.6.0",
+    "mysql2": "^3.11.5",
     "next": "16.0.7",
+    "nextjs-toploader": "^3.9.17",
+    "prisma": "^7.1.0",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "react-icons": "^5.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
