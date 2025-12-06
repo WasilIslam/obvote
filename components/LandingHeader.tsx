@@ -64,95 +64,84 @@ export default function LandingHeader({ onSignInClick, onSignUpClick, onAuthStat
       >
         <Logo size="medium" showTagline />
 
-        {!isSignedIn ? (
-          <>
-            <nav
+        {/* Navigation - Always visible */}
+        <nav
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+            color: '#5f6368',
+            fontSize: '14px',
+            flex: 1,
+            justifyContent: 'center',
+          }}
+        >
+          {navLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flexWrap: 'wrap',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                textDecoration: 'none',
                 color: '#5f6368',
-                fontSize: '14px',
+                transition: 'background 0.2s, color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f8f9fa';
+                e.currentTarget.style.color = '#202124';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#5f6368';
               }}
             >
-              {navLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    textDecoration: 'none',
-                    color: '#5f6368',
-                    transition: 'background 0.2s, color 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f8f9fa';
-                    e.currentTarget.style.color = '#202124';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#5f6368';
-                  }}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={onSignInClick}
-                style={{
-                  padding: '8px 18px',
-                  fontSize: '14px',
-                  background: 'transparent',
-                  border: '1px solid #dadce0',
-                  color: '#5f6368',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  borderRadius: '10px',
-                  transition: 'background 0.2s, color 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.color = '#202124';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#5f6368';
-                }}
-              >
-                Sign in
-              </button>
-              <button
-                onClick={onSignUpClick}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  background: 'var(--primary)',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer',
-                  borderRadius: '10px',
-                  boxShadow: '0 4px 10px rgba(26,115,232,0.24)',
-                  transition: 'transform 0.1s, box-shadow 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 8px 18px rgba(26,115,232,0.28)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 10px rgba(26,115,232,0.24)';
-                }}
-              >
-                Register
-              </button>
-            </div>
-          </>
+        {/* Auth Buttons / User Menu */}
+        {!isSignedIn ? (
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={onSignInClick}
+              style={{
+                padding: '8px 18px',
+                fontSize: '14px',
+                background: 'transparent',
+                border: '1px solid #dadce0',
+                color: '#5f6368',
+                cursor: 'pointer',
+                fontWeight: 500,
+                borderRadius: '8px',
+                transition: 'background 0.2s, color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f8f9fa';
+                e.currentTarget.style.color = '#202124';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#5f6368';
+              }}
+            >
+              Sign in
+            </button>
+            <button
+              onClick={onSignUpClick}
+              className="btn btn-primary"
+              style={{
+                padding: '8px 20px',
+                fontSize: '14px',
+                fontWeight: 500,
+                borderRadius: '8px',
+              }}
+            >
+              Register
+            </button>
+          </div>
         ) : (
           <div style={{ position: 'relative' }}>
             <button
@@ -162,20 +151,20 @@ export default function LandingHeader({ onSignInClick, onSignUpClick, onAuthStat
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 16px',
-                background: 'var(--background-soft)',
-                border: '1px solid var(--background-divider)',
+                background: '#f8f9fa',
+                border: '1px solid #e8eaed',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: 500,
-                color: 'var(--text-primary)',
+                color: '#202124',
                 transition: 'all 0.2s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#e8eef5';
+                e.currentTarget.style.background = '#f1f3f4';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--background-soft)';
+                e.currentTarget.style.background = '#f8f9fa';
               }}
             >
               <div
@@ -215,9 +204,9 @@ export default function LandingHeader({ onSignInClick, onSignUpClick, onAuthStat
                     right: 0,
                     marginTop: '8px',
                     background: 'white',
-                    border: '1px solid var(--background-divider)',
+                    border: '1px solid #e8eaed',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                     minWidth: '200px',
                     zIndex: 1000,
                   }}
@@ -227,14 +216,14 @@ export default function LandingHeader({ onSignInClick, onSignUpClick, onAuthStat
                     style={{
                       display: 'block',
                       padding: '12px 16px',
-                      color: 'var(--text-primary)',
+                      color: '#202124',
                       textDecoration: 'none',
                       fontSize: '14px',
-                      borderBottom: '1px solid var(--background-divider)',
+                      borderBottom: '1px solid #e8eaed',
                       transition: 'background 0.2s',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--background-soft)';
+                      e.currentTarget.style.background = '#f8f9fa';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'white';

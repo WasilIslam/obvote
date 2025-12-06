@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { registrationCodes, units } from "@/db/schema";
+import { registrationCodes, units, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-// GET - Fetch all registration codes with unit info
+// GET - Fetch all registration codes with unit and user info
 export async function GET() {
   try {
     const allCodes = await db
@@ -15,9 +15,12 @@ export async function GET() {
         createdAt: registrationCodes.createdAt,
         usedAt: registrationCodes.usedAt,
         unitIdentifier: units.identifier,
+        userFullName: users.fullName,
+        userEmail: users.email,
       })
       .from(registrationCodes)
-      .leftJoin(units, eq(registrationCodes.unitId, units.id));
+      .leftJoin(units, eq(registrationCodes.unitId, units.id))
+      .leftJoin(users, eq(registrationCodes.usedBy, users.id));
 
     return NextResponse.json({
       success: true,

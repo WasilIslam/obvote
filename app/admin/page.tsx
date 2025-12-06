@@ -43,16 +43,25 @@ export default function AdminPage() {
           </p>
         </Link>
 
-        <div className={styles.cardDisabled}>
+        <Link href="/admin/settings" className={styles.card}>
+          <div className={styles.cardIcon}>
+            <FiSettings size={32} />
+          </div>
+          <h2 className={styles.cardTitle}>Landing Page Settings</h2>
+          <p className={styles.cardDescription}>
+            Manage banner and recent updates displayed on the landing page.
+          </p>
+        </Link>
+
+        <Link href="/admin/users" className={styles.card}>
           <div className={styles.cardIcon}>
             <FiUsers size={32} />
           </div>
           <h2 className={styles.cardTitle}>User Management</h2>
           <p className={styles.cardDescription}>
-            Manage registered users, view activity, and handle user permissions.
+            View registered users, their units, and registration codes used.
           </p>
-          <span className={styles.comingSoon}>Coming Soon</span>
-        </div>
+        </Link>
 
         <div className={styles.cardDisabled}>
           <div className={styles.cardIcon}>
@@ -61,17 +70,6 @@ export default function AdminPage() {
           <h2 className={styles.cardTitle}>Analytics & Reports</h2>
           <p className={styles.cardDescription}>
             View platform statistics, user engagement, and generate reports.
-          </p>
-          <span className={styles.comingSoon}>Coming Soon</span>
-        </div>
-
-        <div className={styles.cardDisabled}>
-          <div className={styles.cardIcon}>
-            <FiSettings size={32} />
-          </div>
-          <h2 className={styles.cardTitle}>System Settings</h2>
-          <p className={styles.cardDescription}>
-            Configure platform settings, email templates, and system preferences.
           </p>
           <span className={styles.comingSoon}>Coming Soon</span>
         </div>

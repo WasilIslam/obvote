@@ -19,6 +19,8 @@ interface RegistrationCode {
   createdAt: string;
   usedAt: string | null;
   unitIdentifier?: string;
+  userFullName?: string;
+  userEmail?: string;
 }
 
 export default function UnitsAdminPage() {
@@ -515,6 +517,7 @@ export default function UnitsAdminPage() {
                                         <tr>
                                           <th className={styles.nestedTableHeadCell}>Code</th>
                                           <th className={styles.nestedTableHeadCell}>Status</th>
+                                          <th className={styles.nestedTableHeadCell}>Used By</th>
                                           <th className={styles.nestedTableHeadCell}>Created</th>
                                           <th className={`${styles.nestedTableHeadCell} ${styles.nestedTableHeadCellRight}`}>Actions</th>
                                         </tr>
@@ -535,6 +538,25 @@ export default function UnitsAdminPage() {
                                                 <span className={`${styles.smallBadge} ${styles.smallBadgeWarning}`}>
                                                   Unused
                                                 </span>
+                                              )}
+                                            </td>
+                                            <td className={styles.nestedTableCell}>
+                                              {code.userFullName ? (
+                                                <a
+                                                  href={`/admin/users?search=${encodeURIComponent(code.userEmail || '')}`}
+                                                  style={{
+                                                    color: '#1a73e8',
+                                                    textDecoration: 'none',
+                                                    fontSize: '13px',
+                                                    fontWeight: 500,
+                                                  }}
+                                                  onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                                                  onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                                                >
+                                                  {code.userFullName}
+                                                </a>
+                                              ) : (
+                                                <span style={{ color: '#80868b', fontSize: '13px' }}>—</span>
                                               )}
                                             </td>
                                             <td className={`${styles.nestedTableCell} ${styles.tableCellSecondary}`}>

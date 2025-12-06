@@ -1,8 +1,7 @@
 'use client';
-'use client';
 
 import Link from 'next/link';
-import { FiKey, FiMail, FiFileText } from 'react-icons/fi';
+import { FiKey, FiMail, FiFileText, FiSettings, FiUsers } from 'react-icons/fi';
 import Logo from './Logo';
 
 export default function AdminHeader() {
@@ -74,6 +73,31 @@ export default function AdminHeader() {
             Units & Codes
           </Link>
           <Link
+            href="/admin/users"
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--background-soft)';
+              e.currentTarget.style.color = 'var(--primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
+          >
+            <FiUsers size={16} />
+            Users
+          </Link>
+          <Link
             href="/admin/contact-form-submissions"
             style={{
               padding: '8px 16px',
@@ -97,6 +121,31 @@ export default function AdminHeader() {
           >
             <FiMail size={16} />
             Contact Forms
+          </Link>
+          <Link
+            href="/admin/settings"
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--background-soft)';
+              e.currentTarget.style.color = 'var(--primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
+          >
+            <FiSettings size={16} />
+            Settings
           </Link>
         </nav>
       </div>

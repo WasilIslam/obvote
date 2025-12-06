@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiX, FiCheck, FiTrendingUp, FiCalendar } from 'react-icons/fi';
 import Image from 'next/image';
+import PetitionCardImage from './PetitionCardImage';
 
 interface Petition {
   id: string;
@@ -32,9 +33,6 @@ export default function PetitionViewModal({
   userAlreadySigned = false,
 }: PetitionViewModalProps) {
   if (!isOpen || !petition) return null;
-
-  const placeholderImage = 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=600&fit=crop';
-  const petitionImage = petition.imageUrl || placeholderImage;
 
   const handleClose = () => {
     onClose();
@@ -106,12 +104,11 @@ export default function PetitionViewModal({
         </div>
 
         {/* Petition Image */}
-        <div style={{ position: 'relative', width: '100%', height: '300px', overflow: 'hidden' }}>
-          <Image
-            src={petitionImage}
-            alt={petition.title}
-            fill
-            style={{ objectFit: 'cover' }}
+        <div style={{ position: 'relative', width: '100%', height: '280px', overflow: 'hidden' }}>
+          <PetitionCardImage
+            title={petition.title}
+            createdAt={petition.createdAt}
+            imageUrl={petition.imageUrl}
           />
           {userAlreadySigned && (
             <div
@@ -139,19 +136,6 @@ export default function PetitionViewModal({
 
         {/* Scrollable Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
-          {/* Title */}
-          <h2
-            style={{
-              fontSize: '32px',
-              fontWeight: 400,
-              marginBottom: '16px',
-              color: '#202124',
-              lineHeight: 1.3,
-            }}
-          >
-            {petition.title}
-          </h2>
-
           {/* Meta Info */}
           <div
             style={{
@@ -168,10 +152,6 @@ export default function PetitionViewModal({
               <span style={{ fontSize: '15px' }}>
                 <strong style={{ color: '#202124' }}>{petition.signatureCount.toLocaleString()}</strong> signatures
               </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#5f6368' }}>
-              <FiCalendar size={18} />
-              <span style={{ fontSize: '15px' }}>Created {formattedDate}</span>
             </div>
           </div>
 

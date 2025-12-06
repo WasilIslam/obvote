@@ -6,88 +6,37 @@
     "ctaSecondary": "Learn More"
   },
   "banner": {
-    "text": "📢 New: Gym Equipment Upgrade petition now open for voting • Closes Dec 20th"
+    "text": "📢 New: Gym Equipment Upgrade petition now open for voting • Closes Dec 20th",
+    "shouldShow": true
   },
-  "features": [
-    {
-      "icon": "users",
-      "title": "Resident-Driven Proposals",
-      "description": "Any resident can create petitions for building improvements, policy changes, or community initiatives."
-    },
-    {
-      "icon": "checkCircle",
-      "title": "Secure Digital Voting",
-      "description": "Vote on proposals with confidence using our tamper-proof system that ensures one vote per verified resident."
-    },
-    {
-      "icon": "trendingUp",
-      "title": "Real-Time Results",
-      "description": "Watch live vote counts and see proposal progress as your community weighs in on important decisions."
-    },
-    {
-      "icon": "mail",
-      "title": "Transparent Communication",
-      "description": "Direct messaging to building management with full visibility and accountability for every request."
-    }
-  ],
+  "recentUpdates": {
+    "shouldShow": true,
+    "items": [
+      "Lobby Renovation Project petition has reached 62 signatures",
+      "Guest Parking Policy Update voting extended through December 15th",
+      "New petition: Rooftop Garden Installation now open for signatures"
+    ]
+  },
   "howItWorks": {
-    "title": "How ObVote Works",
-    "subtitle": "Simple, transparent, and designed for your community",
-    "steps": [
+    "title": "How it works",
+    "subtitle": "Simple voting process for condo boards and residents",
+    "features": [
       {
-        "number": "1",
-        "title": "Register with Your Unit",
-        "description": "Sign up using your unique building registration code to verify you're a resident."
+        "title": "Complete Resident Management",
+        "description": "Comprehensive user management with unit associations, registration codes, and secure authentication. Full audit trails for all resident activities.",
+        "gradient": "linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)"
       },
       {
-        "number": "2",
-        "title": "Browse Active Proposals",
-        "description": "Review petitions created by fellow residents covering everything from amenities to policies."
+        "title": "Advanced Petition System",
+        "description": "Create, manage, and track petitions with full-text search, signature tracking, and comprehensive audit logs. NYS e-signature compliant with legal safeguards.",
+        "gradient": "linear-gradient(135deg, #34a853 0%, #0f9d58 100%)"
       },
       {
-        "number": "3",
-        "title": "Cast Your Vote",
-        "description": "Support proposals you believe in with a single click—your vote is recorded securely and anonymously."
-      },
-      {
-        "number": "4",
-        "title": "Track the Outcome",
-        "description": "Follow petition progress, see results, and watch as your building management takes action on approved proposals."
+        "title": "Administrative Control Panel",
+        "description": "Comprehensive admin dashboard with database management, contact form reviews, system monitoring, and configuration controls. Full audit trails and safety measures.",
+        "gradient": "linear-gradient(135deg, #fbbc04 0%, #f9ab00 100%)"
       }
     ]
-  },
-  "stats": {
-    "title": "Built for Community Engagement",
-    "metrics": [
-      {
-        "value": "100%",
-        "label": "Secure & Anonymous"
-      },
-      {
-        "value": "24/7",
-        "label": "Always Accessible"
-      },
-      {
-        "value": "Real-time",
-        "label": "Instant Results"
-      }
-    ]
-  },
-  "contact": {
-    "title": "Get in Touch",
-    "subtitle": "Have questions or suggestions? We'd love to hear from you.",
-    "form": {
-      "namePlaceholder": "Your name",
-      "emailPlaceholder": "Your email",
-      "unitPlaceholder": "Your unit number (optional)",
-      "subjectPlaceholder": "Subject (optional)",
-      "phonePlaceholder": "Phone number (optional)",
-      "messagePlaceholder": "Your message",
-      "submitButton": "Send Message",
-      "submittingButton": "Sending..."
-    },
-    "successMessage": "Thank you! Your message has been sent successfully.",
-    "errorMessage": "Failed to send message. Please try again."
   },
   "petitions": {
     "title": "Active Petitions",
@@ -95,9 +44,28 @@
     "viewButton": "View Petition",
     "signButton": "Sign Petition",
     "unsignButton": "Unsign",
-    "signaturesLabel": "signatures"
+    "signaturesLabel": "signatures",
+    "emptyState": "No active petitions at the moment. Check back soon!",
+    "loadingText": "Loading petitions..."
+  },
+  "contact": {
+    "title": "Get in touch",
+    "subtitle": "Have questions, need help with registration, or want to propose a new petition? We're here to help.",
+    "rightPanel": {
+      "title": "Trusted by condos",
+      "description": "Hundreds of condo buildings use ObVote to streamline their voting process and engage residents.",
+      "stats": [
+        { "value": "250+", "label": "Condo buildings" },
+        { "value": "15K+", "label": "Active residents" }
+      ]
+    },
+    "form": {
+      "submitButton": "Send message",
+      "submittingButton": "Sending..."
+    }
   },
   "footer": {
-    "copyright": "© 2024 ObVote. Building better communities together."
+    "copyright": "© 2025 ObVote • Streamlined voting for condo communities",
+    "tagline": "NYS e-signature compliant • Secure • Transparent"
   }
 }

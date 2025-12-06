@@ -8,6 +8,8 @@ import LandingHeader from '@/components/LandingHeader';
 import SignInModal from '@/components/SignInModal';
 import PetitionViewModal from '@/components/PetitionViewModal';
 import PetitionSignModal from '@/components/PetitionSignModal';
+import SkeletonLoader from '@/components/SkeletonLoader';
+import PetitionCardImage from '@/components/PetitionCardImage';
 import landingContent from '@/content/landing.json';
 
 interface Petition {
@@ -36,8 +38,28 @@ export default function Home() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [settings, setSettings] = useState<{
+    banner: { text: string; shouldShow: boolean };
+    recentUpdates: { shouldShow: boolean; items: string[] };
+    hero: { title: string; subtitle: string; ctaPrimary: string; ctaSecondary: string };
+    howItWorks: { title: string; subtitle: string; features: Array<{ title: string; description: string; gradient: string }> };
+    petitions: { title: string; subtitle: string; viewButton: string; signaturesLabel: string; emptyState: string; loadingText: string };
+    contact: {
+      title: string;
+      subtitle: string;
+      rightPanel: { title: string; description: string; stats: Array<{ value: string; label: string }> };
+      form: { submitButton: string; submittingButton: string };
+    };
+    footer: { copyright: string; tagline: string };
+  } | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
 
   useEffect(() => {
+    // Prevent scroll on initial load
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+
     const userStr = localStorage.getItem('obvote_user');
     if (userStr) {
       try {
@@ -49,10 +71,23 @@ export default function Home() {
         console.error('Error parsing user data:', e);
       }
     }
+
+    // Load cached settings immediately
+    const cachedSettings = localStorage.getItem('obvote_landing_settings');
+    if (cachedSettings) {
+      try {
+        const parsed = JSON.parse(cachedSettings);
+        setSettings(parsed);
+        setLoadingSettings(false);
+      } catch (e) {
+        console.error('Error parsing cached settings:', e);
+      }
+    }
   }, []);
 
   useEffect(() => {
     fetchPetitions();
+    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -60,6 +95,28 @@ export default function Home() {
       fetchUserSignatures();
     }
   }, [isSignedIn, currentUser]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+
+      if (response.ok && data.settings) {
+        setSettings(data.settings);
+
+        // Cache settings in localStorage
+        try {
+          localStorage.setItem('obvote_landing_settings', JSON.stringify(data.settings));
+        } catch (e) {
+          console.error('Error caching settings:', e);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    } finally {
+      setLoadingSettings(false);
+    }
+  };
 
   const fetchPetitions = async () => {
     try {
@@ -234,7 +291,7 @@ export default function Home() {
   return (
     <>
       {/* Updates Banner */}
-      {showBanner && (
+      {settings?.banner?.shouldShow && showBanner && (
         <div style={{
           background: '#e8f4fd',
           padding: '12px 20px',
@@ -247,7 +304,7 @@ export default function Home() {
           borderBottom: '1px solid #d2e3fc'
         }}>
           <p style={{ margin: 0, textAlign: 'center', fontWeight: 500 }}>
-            {landingContent.banner.text}
+            {settings.banner.text}
           </p>
           <button
             onClick={() => setShowBanner(false)}
@@ -284,276 +341,245 @@ export default function Home() {
 
       {/* Hero Section */}
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '80px 40px 60px' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '64px',
-          alignItems: 'center',
-          marginBottom: '120px'
-        }}>
-          <div>
-            <h2 style={{
-              fontSize: 'clamp(36px, 5vw, 48px)',
-              fontWeight: 400,
-              marginBottom: '20px',
-              color: '#202124',
-              lineHeight: 1.2
-            }}>
-              {landingContent.hero.title}
-            </h2>
-            <p style={{
-              fontSize: '18px',
-              color: '#5f6368',
-              marginBottom: '32px',
-              lineHeight: 1.6,
-              fontWeight: 400
-            }}>
-              {landingContent.hero.subtitle}
-            </p>
-            {!isSignedIn && (
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => setShowSignUpModal(true)}
-                  className="btn btn-primary"
-                  style={{
-                    padding: '12px 32px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    boxShadow: '0 1px 2px rgba(26,115,232,0.3)'
-                  }}
-                >
-                  {landingContent.hero.ctaPrimary}
-                </button>
-                <a
-                  href="#how-it-works"
-                  style={{
-                    padding: '12px 32px',
-                    fontSize: '15px',
-                    background: 'transparent',
-                    border: '1px solid #dadce0',
-                    color: 'var(--primary)',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                    borderRadius: '8px',
-                    transition: 'all 0.2s',
-                    textDecoration: 'none',
-                    display: 'inline-block'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#f8f9fa'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                >
-                  {landingContent.hero.ctaSecondary}
-                </a>
-              </div>
-            )}
-          </div>
+        {loadingSettings ? (
+          <SkeletonLoader variant="hero" />
+        ) : (
           <div style={{
-            width: '100%',
-            height: 'auto',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            position: 'relative'
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '64px',
+            alignItems: 'center',
+            marginBottom: '120px'
           }}>
-            <Image
-              src="/imgs/dashboard-3.png"
-              alt="ObVote Dashboard"
-              width={1300}
-              height={900}
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
-                WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
-              }}
-              priority
-            />
+            <div>
+              <h2 style={{
+                fontSize: 'clamp(36px, 5vw, 48px)',
+                fontWeight: 400,
+                marginBottom: '20px',
+                color: '#202124',
+                lineHeight: 1.2
+              }}>
+                {settings?.hero?.title || landingContent.hero.title}
+              </h2>
+              <p style={{
+                fontSize: '18px',
+                color: '#5f6368',
+                marginBottom: '32px',
+                lineHeight: 1.6,
+                fontWeight: 400
+              }}>
+                {settings?.hero?.subtitle || landingContent.hero.subtitle}
+              </p>
+              {!isSignedIn && (
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setShowSignUpModal(true)}
+                    className="btn btn-primary"
+                    style={{
+                      padding: '12px 32px',
+                      fontSize: '15px',
+                      fontWeight: 500,
+                      boxShadow: '0 1px 2px rgba(26,115,232,0.3)'
+                    }}
+                  >
+                    {settings?.hero?.ctaPrimary || landingContent.hero.ctaPrimary}
+                  </button>
+                  <a
+                    href="#how-it-works"
+                    style={{
+                      padding: '12px 32px',
+                      fontSize: '15px',
+                      background: 'transparent',
+                      border: '1px solid #dadce0',
+                      color: 'var(--primary)',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      borderRadius: '8px',
+                      transition: 'all 0.2s',
+                      textDecoration: 'none',
+                      display: 'inline-block'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8f9fa'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {settings?.hero?.ctaSecondary || landingContent.hero.ctaSecondary}
+                  </a>
+                </div>
+              )}
+            </div>
+            <div style={{
+              width: '100%',
+              height: 'auto',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <Image
+                src="/imgs/dashboard-3.png"
+                alt="ObVote Dashboard"
+                width={1300}
+                height={900}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)',
+                  WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)'
+                }}
+                priority
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Updates Section */}
-        <section
-          id="updates"
-          style={{
-            marginBottom: '80px',
-            background: '#f8f9fa',
-            padding: '32px 40px',
-            borderRadius: '12px',
-            border: '1px solid #e8eaed'
-          }}>
-          <div style={{ display: 'flex', alignItems: 'start', gap: '16px' }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
+        {settings?.recentUpdates?.shouldShow && settings.recentUpdates.items.length > 0 && (
+          <section
+            id="updates"
+            style={{
+              marginBottom: '80px',
+              background: '#f8f9fa',
+              padding: '32px 40px',
+              borderRadius: '12px',
+              border: '1px solid #e8eaed',
             }}>
-              <FiCheckCircle size={20} style={{ color: 'white', strokeWidth: 2 }} />
-            </div>
-            <div>
-              <h3 style={{
-                fontSize: '20px',
-                fontWeight: 500,
-                marginBottom: '12px',
-                color: '#202124'
+            <div style={{ display: 'flex', alignItems: 'start', gap: '16px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
               }}>
-                Recent Updates
-              </h3>
-              <ul style={{
-                fontSize: '15px',
-                color: '#5f6368',
-                lineHeight: 1.8,
-                margin: 0,
-                paddingLeft: '20px'
-              }}>
-                <li>Lobby Renovation Project petition has reached 62 signatures</li>
-                <li>Guest Parking Policy Update voting extended through December 15th</li>
-                <li>New petition: Rooftop Garden Installation now open for signatures</li>
-              </ul>
+                <FiCheckCircle size={20} style={{ color: 'white', strokeWidth: 2 }} />
+              </div>
+              <div>
+                <h3 style={{
+                  fontSize: '20px',
+                  fontWeight: 500,
+                  marginBottom: '12px',
+                  color: '#202124'
+                }}>
+                  Recent Updates
+                </h3>
+                <ul style={{
+                  fontSize: '15px',
+                  color: '#5f6368',
+                  lineHeight: 1.8,
+                  margin: 0,
+                  paddingLeft: '20px'
+                }}>
+                  {settings.recentUpdates.items.map((item: string, index: number) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* How It Works */}
         <section
           id="how-it-works"
           style={{ marginBottom: '120px', background: '#f8f9fa', padding: '80px 40px', margin: '0 -40px 120px', borderRadius: '0' }}>
-          <h3 style={{
-            fontSize: '36px',
-            fontWeight: 400,
-            textAlign: 'center',
-            marginBottom: '16px',
-            color: '#202124'
-          }}>
-            How it works
-          </h3>
-          <p style={{
-            fontSize: '16px',
-            color: '#5f6368',
-            textAlign: 'center',
-            marginBottom: '64px',
-            maxWidth: '600px',
-            margin: '0 auto 64px'
-          }}>
-            Simple voting process for condo boards and residents
-          </p>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '48px',
-            maxWidth: '1000px',
-            margin: '0 auto'
-          }}>
-            <div style={{
-              background: 'white',
-              padding: '32px 28px',
-              borderRadius: '12px',
-              border: '1px solid #e8eaed',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'pointer'
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                background: 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px'
-              }}>
-                <FiEdit3 size={28} style={{ color: 'white', strokeWidth: 2 }} />
+          {loadingSettings ? (
+            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+              <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+                <div style={{
+                  background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite',
+                  height: '36px',
+                  width: '300px',
+                  borderRadius: '8px',
+                  margin: '0 auto 16px'
+                }} />
+                <div style={{
+                  background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 1.5s infinite',
+                  height: '20px',
+                  width: '500px',
+                  borderRadius: '8px',
+                  margin: '0 auto',
+                  maxWidth: '90%'
+                }} />
               </div>
-              <h4 style={{ fontSize: '18px', fontWeight: 500, marginBottom: '12px', color: '#202124' }}>
-                Complete Resident Management
-              </h4>
-              <p style={{ fontSize: '14px', color: '#5f6368', lineHeight: 1.7, fontWeight: 400 }}>
-                Comprehensive user management with unit associations, registration codes, and secure authentication. Full audit trails for all resident activities.
-              </p>
+              <SkeletonLoader variant="section" />
             </div>
-            <div style={{
-              background: 'white',
-              padding: '32px 28px',
-              borderRadius: '12px',
-              border: '1px solid #e8eaed',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'pointer'
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
+          ) : (
+            <>
+              <h3 style={{
+                fontSize: '36px',
+                fontWeight: 400,
+                textAlign: 'center',
+                marginBottom: '16px',
+                color: '#202124'
               }}>
+                {settings?.howItWorks?.title || landingContent.howItWorks.title}
+              </h3>
+              <p style={{
+                fontSize: '16px',
+                color: '#5f6368',
+                textAlign: 'center',
+                marginBottom: '64px',
+                maxWidth: '600px',
+                margin: '0 auto 64px'
+              }}>
+                {settings?.howItWorks?.subtitle || landingContent.howItWorks.subtitle}
+              </p>
               <div style={{
-                width: '56px',
-                height: '56px',
-                background: 'linear-gradient(135deg, #34a853 0%, #0f9d58 100%)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px'
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '48px',
+                maxWidth: '1000px',
+                margin: '0 auto'
               }}>
-                <FiUsers size={28} style={{ color: 'white', strokeWidth: 2 }} />
+                {(settings?.howItWorks?.features || landingContent.howItWorks.features).map((feature: any, index: number) => (
+                  <div key={index} style={{
+                    background: 'white',
+                    padding: '32px 28px',
+                    borderRadius: '12px',
+                    border: '1px solid #e8eaed',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    cursor: 'pointer'
+                  }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}>
+                    <div style={{
+                      width: '56px',
+                      height: '56px',
+                      background: feature.gradient,
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: '20px'
+                    }}>
+                      {index === 0 ? <FiEdit3 size={28} style={{ color: 'white', strokeWidth: 2 }} /> :
+                        index === 1 ? <FiUsers size={28} style={{ color: 'white', strokeWidth: 2 }} /> :
+                          <FiCheckCircle size={28} style={{ color: 'white', strokeWidth: 2 }} />}
+                    </div>
+                    <h4 style={{ fontSize: '18px', fontWeight: 500, marginBottom: '12px', color: '#202124' }}>
+                      {feature.title}
+                    </h4>
+                    <p style={{ fontSize: '14px', color: '#5f6368', lineHeight: 1.7, fontWeight: 400 }}>
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
               </div>
-              <h4 style={{ fontSize: '18px', fontWeight: 500, marginBottom: '12px', color: '#202124' }}>
-                Advanced Petition System
-              </h4>
-              <p style={{ fontSize: '14px', color: '#5f6368', lineHeight: 1.7, fontWeight: 400 }}>
-                Create, manage, and track petitions with full-text search, signature tracking, and comprehensive audit logs. NYS e-signature compliant with legal safeguards.
-              </p>
-            </div>
-            <div style={{
-              background: 'white',
-              padding: '32px 28px',
-              borderRadius: '12px',
-              border: '1px solid #e8eaed',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'pointer'
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                background: 'linear-gradient(135deg, #fbbc04 0%, #f9ab00 100%)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px'
-              }}>
-                <FiCheckCircle size={28} style={{ color: 'white', strokeWidth: 2 }} />
-              </div>
-              <h4 style={{ fontSize: '18px', fontWeight: 500, marginBottom: '12px', color: '#202124' }}>
-                Administrative Control Panel
-              </h4>
-              <p style={{ fontSize: '14px', color: '#5f6368', lineHeight: 1.7, fontWeight: 400 }}>
-                Comprehensive admin dashboard with database management, contact form reviews, system monitoring, and configuration controls. Full audit trails and safety measures.
-              </p>
-            </div>
-          </div>
+            </>
+          )}
         </section>
 
         {/* Current Petitions */}
@@ -565,7 +591,7 @@ export default function Home() {
               marginBottom: '12px',
               color: '#202124'
             }}>
-              {landingContent.petitions.title}
+              {settings?.petitions?.title || landingContent.petitions.title}
             </h3>
             <p style={{
               fontSize: '16px',
@@ -573,13 +599,17 @@ export default function Home() {
               maxWidth: '600px',
               margin: '0 auto'
             }}>
-              {landingContent.petitions.subtitle}
+              {settings?.petitions?.subtitle || landingContent.petitions.subtitle}
             </p>
           </div>
 
           {loadingPetitions ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#5f6368' }}>
-              Loading petitions...
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gap: '24px'
+            }}>
+              <SkeletonLoader variant="card" count={3} />
             </div>
           ) : petitions.length === 0 ? (
             <div style={{
@@ -591,7 +621,7 @@ export default function Home() {
             }}>
               <FiCheckCircle size={48} style={{ color: '#5f6368', marginBottom: '16px' }} />
               <p style={{ fontSize: '16px', color: '#5f6368' }}>
-                No active petitions at the moment. Check back soon!
+                {settings?.petitions?.emptyState || landingContent.petitions.emptyState}
               </p>
             </div>
           ) : (
@@ -604,8 +634,6 @@ export default function Home() {
               }}>
                 {petitions.map(petition => {
                   const userSigned = userSignedPetitions.has(petition.id);
-                  const placeholderImage = 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=500&fit=crop';
-                  const petitionImage = petition.imageUrl || placeholderImage;
 
                   return (
                     <div
@@ -632,12 +660,11 @@ export default function Home() {
                       }}
                     >
                       {/* Petition Image */}
-                      <div style={{ position: 'relative', width: '100%', height: '180px', overflow: 'hidden' }}>
-                        <Image
-                          src={petitionImage}
-                          alt={petition.title}
-                          fill
-                          style={{ objectFit: 'cover' }}
+                      <div style={{ position: 'relative' }}>
+                        <PetitionCardImage
+                          title={petition.title}
+                          createdAt={petition.createdAt}
+                          imageUrl={petition.imageUrl}
                         />
                         {userSigned && (
                           <div style={{
@@ -665,15 +692,6 @@ export default function Home() {
                         padding: '20px',
                         flex: 1
                       }}>
-                        <h4 style={{
-                          fontSize: '18px',
-                          fontWeight: 500,
-                          marginBottom: '10px',
-                          color: '#202124',
-                          lineHeight: 1.3
-                        }}>
-                          {petition.title}
-                        </h4>
                         <p style={{
                           fontSize: '14px',
                           color: '#5f6368',
@@ -681,7 +699,8 @@ export default function Home() {
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
+                          overflow: 'hidden',
+                          margin: 0
                         }}>
                           {petition.content}
                         </p>
@@ -766,14 +785,14 @@ export default function Home() {
                     marginBottom: '16px',
                     color: '#202124'
                   }}>
-                    Get in touch
+                    {settings?.contact?.title || landingContent.contact.title}
                   </h3>
                   <p style={{
                     fontSize: '16px',
                     color: '#5f6368',
                     lineHeight: 1.7
                   }}>
-                    Have questions, need help with registration, or want to propose a new petition? We're here to help.
+                    {settings?.contact?.subtitle || landingContent.contact.subtitle}
                   </p>
                 </div>
                 <form onSubmit={handleContactSubmit}>
@@ -849,7 +868,7 @@ export default function Home() {
                       cursor: contactSubmitting ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    {contactSubmitting ? 'Sending...' : 'Send message'}
+                    {contactSubmitting ? (settings?.contact?.form?.submittingButton || landingContent.contact.form.submittingButton) : (settings?.contact?.form?.submitButton || landingContent.contact.form.submitButton)}
                   </button>
                 </form>
               </div>
@@ -883,7 +902,7 @@ export default function Home() {
                     marginBottom: '16px',
                     color: 'white'
                   }}>
-                    Trusted by condos
+                    {settings?.contact?.rightPanel?.title || landingContent.contact.rightPanel.title}
                   </h4>
                   <p style={{
                     fontSize: '16px',
@@ -891,7 +910,7 @@ export default function Home() {
                     opacity: 0.95,
                     maxWidth: '400px'
                   }}>
-                    Hundreds of condo buildings use ObVote to streamline their voting process and engage residents.
+                    {settings?.contact?.rightPanel?.description || landingContent.contact.rightPanel.description}
                   </p>
                   <div style={{
                     display: 'grid',
@@ -901,14 +920,12 @@ export default function Home() {
                     width: '100%',
                     maxWidth: '400px'
                   }}>
-                    <div>
-                      <div style={{ fontSize: '36px', fontWeight: 500, marginBottom: '8px' }}>250+</div>
-                      <div style={{ fontSize: '14px', opacity: 0.9 }}>Condo buildings</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '36px', fontWeight: 500, marginBottom: '8px' }}>15K+</div>
-                      <div style={{ fontSize: '14px', opacity: 0.9 }}>Active residents</div>
-                    </div>
+                    {(settings?.contact?.rightPanel?.stats || landingContent.contact.rightPanel.stats).map((stat: any, index: number) => (
+                      <div key={index}>
+                        <div style={{ fontSize: '36px', fontWeight: 500, marginBottom: '8px' }}>{stat.value}</div>
+                        <div style={{ fontSize: '14px', opacity: 0.9 }}>{stat.label}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -930,13 +947,13 @@ export default function Home() {
           marginBottom: '8px',
           fontWeight: 400
         }}>
-          © 2025 ObVote • Streamlined voting for condo communities
+          {settings?.footer?.copyright || landingContent.footer.copyright}
         </p>
         <p style={{
           fontSize: '12px',
           color: '#80868b'
         }}>
-          NYS e-signature compliant • Secure • Transparent
+          {settings?.footer?.tagline || landingContent.footer.tagline}
         </p>
       </footer>
 
