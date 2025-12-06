@@ -1,0 +1,264 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.createBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.createBtn:hover {
+  background: var(--btn-primary-hover-bg);
+}
+
+.loading {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--text-secondary);
+}
+
+.spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 4px solid var(--primary);
+  border-radius: 50%;
+  border-right-color: transparent;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--background-main);
+  border: 1px solid var(--background-divider);
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+.empty svg {
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.petitionCard {
+  background: var(--background-main);
+  border: 1px solid var(--background-divider);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.petitionCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.petitionHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.petitionHeader:hover {
+  background: var(--background-soft);
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  transition: background 0.2s;
+  border-radius: 4px;
+}
+
+.expandBtn:hover {
+  background: var(--background-divider);
+}
+
+.petitionInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.petitionTitle {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.petitionMeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.metaText {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.expandedContent {
+  border-top: 1px solid var(--background-divider);
+  padding: 24px;
+  background: var(--background-soft);
+}
+
+.contentSection,
+.signaturesSection {
+  margin-bottom: 24px;
+}
+
+.contentSection:last-child,
+.signaturesSection:last-child {
+  margin-bottom: 0;
+}
+
+.contentSection h4,
+.signaturesSection h4 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.content {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  background: var(--background-main);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--background-divider);
+}
+
+.hash {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.hash code {
+  font-family: "Monaco", "Courier New", monospace;
+  background: var(--background-main);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.loadingText,
+.emptyText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 16px;
+  text-align: center;
+}
+
+.signaturesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signatureItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--background-main);
+  border: 1px solid var(--background-divider);
+  border-radius: 6px;
+}
+
+.sigName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.sigDate {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .signatureItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

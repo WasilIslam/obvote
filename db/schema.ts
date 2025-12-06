@@ -1,4 +1,4 @@
-import { mysqlTable, serial, varchar, text, timestamp, boolean, json, unique } from "drizzle-orm/mysql-core";
+import { mysqlTable, serial, varchar, text, timestamp, boolean, json, unique, int } from "drizzle-orm/mysql-core";
 
 // Users table
 export const users = mysqlTable("obvote_users", {
@@ -30,41 +30,47 @@ export const registrationCodes = mysqlTable("obvote_registration_codes", {
   usedAt: timestamp("used_at"),
 });
 
-// Petitions table
+// Petitions table - Content storage with versioning
 export const petitions = mysqlTable("obvote_petitions", {
   id: varchar("id", { length: 36 }).primaryKey(), // UUID
-  title: varchar("title", { length: 500 }).notNull(),
-  summary: text("summary"),
-  text: text("text").notNull(),
-  metadata: json("metadata"),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  imageUrl: varchar("image_url", { length: 500 }), // Optional image
+  version: int("version").default(1).notNull(), // Increments on edit
+  contentHash: varchar("content_hash", { length: 64 }), // SHA-256 hash
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
-// Petition signatures table
-export const petitionSignatures = mysqlTable(
-  "obvote_petition_signatures",
-  {
-    id: varchar("id", { length: 36 }).primaryKey(), // UUID
-    petitionId: varchar("petition_id", { length: 36 }).notNull(), // FK to petitions.id
-    userId: varchar("user_id", { length: 36 }).notNull(), // FK to users.id
-    signatureValue: text("signature_value").notNull(),
-    metadata: json("metadata"), // IP, UA, method, confirmation flags
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    uniqueSignature: unique().on(table.petitionId, table.userId),
-  })
-);
-
-// Signature audit log table
+// Signature audit log table - APPEND ONLY for legal compliance
+// This is the single source of truth for all signature events
 export const signatureAuditLog = mysqlTable("obvote_signature_audit_log", {
-  id: varchar("id", { length: 36 }).primaryKey(), // UUID
-  petitionId: varchar("petition_id", { length: 36 }).notNull(),
+  eventId: varchar("event_id", { length: 36 }).primaryKey(), // UUID
+
+  // WHO: Attribution
   userId: varchar("user_id", { length: 36 }).notNull(),
-  data: json("data").notNull(), // All NYS e-signature data
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  userEmail: varchar("user_email", { length: 255 }).notNull(),
+  userFullName: varchar("user_full_name", { length: 255 }).notNull(),
+  userIpAddress: varchar("user_ip_address", { length: 45 }), // IPv4/IPv6
+  userAgent: text("user_agent"),
+
+  // WHAT: Association
+  petitionId: varchar("petition_id", { length: 36 }).notNull(),
+  petitionVersionSigned: int("petition_version_signed").notNull(),
+  petitionTitleSnapshot: text("petition_title_snapshot").notNull(),
+  petitionContentHash: varchar("petition_content_hash", { length: 64 }).notNull(),
+
+  // HOW: Intent & Integrity
+  consentCheckboxChecked: boolean("consent_checkbox_checked").notNull().default(false),
+  signatureTypedValue: varchar("signature_typed_value", { length: 255 }).notNull(),
+  signatureHash: varchar("signature_hash", { length: 64 }).notNull(), // SHA-256
+
+  // WHEN: Temporal proof
+  signedAtUtc: timestamp("signed_at_utc").notNull().defaultNow(),
+
+  // Additional metadata
+  metadata: json("metadata"),
 });
 
 // Contact submissions table (updated structure)

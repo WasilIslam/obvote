@@ -84,44 +84,59 @@ async function initializeDatabase() {
         INDEX idx_registration_codes_used (used)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
-      // Petitions table
+      // Petitions table - Stores petition content with versioning
       `CREATE TABLE IF NOT EXISTS obvote_petitions (
         id VARCHAR(36) PRIMARY KEY,
-        title VARCHAR(500) NOT NULL,
-        summary TEXT,
-        text TEXT NOT NULL,
-        metadata JSON,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        image_url VARCHAR(500) COMMENT 'Optional petition image URL',
+        version INT DEFAULT 1 NOT NULL COMMENT 'Increments if petition is edited',
+        content_hash VARCHAR(64) COMMENT 'SHA-256 hash of the content for integrity verification',
         is_active BOOLEAN DEFAULT TRUE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
         INDEX idx_petitions_is_active (is_active),
-        FULLTEXT idx_petitions_title_text (title, text)
+        INDEX idx_petitions_version (version),
+        FULLTEXT idx_petitions_title_content (title, content)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 
-      // Petition signatures table
-      `CREATE TABLE IF NOT EXISTS obvote_petition_signatures (
-        id VARCHAR(36) PRIMARY KEY,
-        petition_id VARCHAR(36) NOT NULL,
-        user_id VARCHAR(36) NOT NULL,
-        signature_value TEXT NOT NULL,
-        metadata JSON,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        UNIQUE KEY unique_petition_user (petition_id, user_id),
-        INDEX idx_petition_signatures_petition_id (petition_id),
-        INDEX idx_petition_signatures_user_id (user_id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
-
-      // Signature audit log table
+      // Signature audit log table - APPEND ONLY for legal compliance
+      // This is the single source of truth for all signature events
+      // WARNING: NEVER DELETE ROWS FROM THIS TABLE
       `CREATE TABLE IF NOT EXISTS obvote_signature_audit_log (
-        id VARCHAR(36) PRIMARY KEY,
-        petition_id VARCHAR(36) NOT NULL,
-        user_id VARCHAR(36) NOT NULL,
-        data JSON NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        INDEX idx_signature_audit_log_petition_id (petition_id),
-        INDEX idx_signature_audit_log_user_id (user_id),
-        INDEX idx_signature_audit_log_created_at (created_at)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+        event_id VARCHAR(36) PRIMARY KEY,
+
+        -- WHO: Attribution (required for legal validity)
+        user_id VARCHAR(36) NOT NULL COMMENT 'References users table',
+        user_email VARCHAR(255) NOT NULL COMMENT 'Snapshot of email at signing time',
+        user_full_name VARCHAR(255) NOT NULL COMMENT 'Snapshot of full name at signing time',
+        user_ip_address VARCHAR(45) COMMENT 'IPv4 or IPv6 address',
+        user_agent TEXT COMMENT 'Browser/device information',
+
+        -- WHAT: Association (links signature to specific petition version)
+        petition_id VARCHAR(36) NOT NULL COMMENT 'References petitions table',
+        petition_version_signed INT NOT NULL COMMENT 'Version of petition that was signed',
+        petition_title_snapshot TEXT NOT NULL COMMENT 'Title at time of signing',
+        petition_content_hash VARCHAR(64) NOT NULL COMMENT 'Hash of content that was signed',
+
+        -- HOW: Intent & Integrity (proves deliberate action)
+        consent_checkbox_checked BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User explicitly checked consent',
+        signature_typed_value VARCHAR(255) NOT NULL COMMENT 'What the user typed as their signature',
+        signature_hash VARCHAR(64) NOT NULL COMMENT 'SHA-256(user_id + petition_content_hash + timestamp + typed_value)',
+
+        -- WHEN: Temporal proof
+        signed_at_utc TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'UTC timestamp of signature',
+
+        -- METADATA: Additional context stored as JSON
+        metadata JSON COMMENT 'Additional context: device type, session info, etc.',
+
+        -- Indexes for querying
+        INDEX idx_audit_user_id (user_id),
+        INDEX idx_audit_petition_id (petition_id),
+        INDEX idx_audit_signed_at (signed_at_utc),
+        INDEX idx_audit_user_petition (user_id, petition_id),
+        UNIQUE INDEX idx_audit_user_petition_version (user_id, petition_id, petition_version_signed) COMMENT 'One signature per user per petition version'
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='APPEND ONLY - Legal compliance audit log'`,
 
       // Contact submissions table
       `CREATE TABLE IF NOT EXISTS obvote_contact_submissions (
@@ -193,11 +208,12 @@ async function initializeDatabase() {
     console.log("  • obvote_users");
     console.log("  • obvote_units");
     console.log("  • obvote_registration_codes");
-    console.log("  • obvote_petitions");
-    console.log("  • obvote_petition_signatures");
-    console.log("  • obvote_signature_audit_log");
+    console.log("  • obvote_petitions (with versioning & content hashing)");
+    console.log("  • obvote_signature_audit_log (APPEND ONLY - Legal compliance)");
     console.log("  • obvote_contact_submissions");
     console.log("  • obvote_settings");
+    console.log("\n⚠️  IMPORTANT: obvote_signature_audit_log is APPEND ONLY");
+    console.log("   Never delete records from this table for legal compliance!");
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
     if (error instanceof Error) {

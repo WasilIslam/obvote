@@ -6,16 +6,36 @@ import Link from 'next/link';
 import { FiX, FiCheckCircle, FiUsers, FiMail, FiEdit3, FiCheck, FiTrendingUp } from 'react-icons/fi';
 import LandingHeader from '@/components/LandingHeader';
 import SignInModal from '@/components/SignInModal';
+import PetitionViewModal from '@/components/PetitionViewModal';
+import PetitionSignModal from '@/components/PetitionSignModal';
 import landingContent from '@/content/landing.json';
+
+interface Petition {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string | null;
+  version: number;
+  contentHash: string;
+  signatureCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export default function Home() {
   const [showBanner, setShowBanner] = useState(true);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [signedPetitions, setSignedPetitions] = useState<Set<number>>(new Set());
+  const [petitions, setPetitions] = useState<Petition[]>([]);
+  const [loadingPetitions, setLoadingPetitions] = useState(true);
+  const [selectedPetition, setSelectedPetition] = useState<Petition | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showSignModal, setShowSignModal] = useState(false);
+  const [userSignedPetitions, setUserSignedPetitions] = useState<Set<string>>(new Set());
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const userStr = localStorage.getItem('obvote_user');
@@ -24,14 +44,71 @@ export default function Home() {
         const userData = JSON.parse(userStr);
         setIsSignedIn(true);
         setUserName(userData.fullName || '');
+        setCurrentUser(userData);
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
     }
   }, []);
 
+  useEffect(() => {
+    fetchPetitions();
+  }, []);
+
+  useEffect(() => {
+    if (isSignedIn && currentUser) {
+      fetchUserSignatures();
+    }
+  }, [isSignedIn, currentUser]);
+
+  const fetchPetitions = async () => {
+    try {
+      setLoadingPetitions(true);
+      const response = await fetch('/api/petitions');
+      const data = await response.json();
+
+      if (response.ok && data.petitions) {
+        setPetitions(data.petitions);
+      }
+    } catch (error) {
+      console.error('Error fetching petitions:', error);
+    } finally {
+      setLoadingPetitions(false);
+    }
+  };
+
+  const fetchUserSignatures = async () => {
+    if (!currentUser) return;
+
+    try {
+      const response = await fetch(`/api/user/signatures?userId=${currentUser.id}`);
+      const data = await response.json();
+
+      if (response.ok && data.signatures) {
+        const signedIds = new Set<string>(data.signatures.map((sig: any) => sig.petitionId as string));
+        setUserSignedPetitions(signedIds);
+      }
+    } catch (error) {
+      console.error('Error fetching user signatures:', error);
+    }
+  };
+
+  const handleViewPetition = (petition: Petition) => {
+    setSelectedPetition(petition);
+    setShowViewModal(true);
+  };
+
+  const handleContinueToSign = () => {
+    if (!isSignedIn) {
+      setShowViewModal(false);
+      setShowSignInModal(true);
+      return;
+    }
+    setShowViewModal(false);
+    setShowSignModal(true);
+  };
+
   // Auth state
-  const [signInForm, setSignInForm] = useState({ email: '', password: '' });
   const [signUpForm, setSignUpForm] = useState({
     fullName: '',
     email: '',
@@ -43,7 +120,6 @@ export default function Home() {
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authMessage, setAuthMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // Contact form state
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -54,67 +130,6 @@ export default function Home() {
   });
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactMessage, setContactMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
-  const petitions = [
-    {
-      id: 1,
-      title: 'Rooftop Garden Installation',
-      snippet: 'Proposal to install a community rooftop garden with sustainable features and shared maintenance.',
-      signatures: 47,
-      image: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&h=500&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Bike Storage Expansion',
-      snippet: 'Add secure bike storage facilities in the parking garage to accommodate growing cycling residents.',
-      signatures: 32,
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Gym Equipment Upgrade',
-      snippet: 'Replace outdated fitness equipment and add new cardio machines to the building gym.',
-      signatures: 56,
-      image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=500&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Guest Parking Policy Update',
-      snippet: 'Revise guest parking rules to allow 3 hours free parking for visitors during daytime hours.',
-      signatures: 41,
-      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=800&h=500&fit=crop'
-    },
-    {
-      id: 5,
-      title: 'Pet-Friendly Common Areas',
-      snippet: 'Designate specific times for pet access to common outdoor spaces with proper waste stations.',
-      signatures: 38,
-      image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=500&fit=crop'
-    },
-    {
-      id: 6,
-      title: 'Lobby Renovation Project',
-      snippet: 'Modernize the main lobby with new furniture, lighting, and a digital directory system.',
-      signatures: 62,
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=500&fit=crop'
-    }
-  ];
-
-  const togglePetitionSign = (id: number) => {
-    setSignedPetitions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
-  const closeSignInModal = () => {
-    setShowSignInModal(false);
-  };
 
   const closeSignUpModal = () => {
     setShowSignUpModal(false);
@@ -165,53 +180,17 @@ export default function Home() {
     }
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthSubmitting(true);
-    setAuthMessage(null);
-
-    try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signInForm)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store session in localStorage
-        localStorage.setItem('obvote_session', JSON.stringify(data.session));
-        localStorage.setItem('obvote_user', JSON.stringify(data.user));
-
-        setAuthMessage({ type: 'success', text: 'Signed in successfully!' });
-        setTimeout(() => {
-          setShowSignInModal(false);
-          window.location.href = '/dashboard';
-        }, 1000);
-      } else {
-        setAuthMessage({ type: 'error', text: data.error || 'Failed to sign in' });
-      }
-    } catch (error) {
-      setAuthMessage({ type: 'error', text: 'Network error. Please try again.' });
-    } finally {
-      setAuthSubmitting(false);
-    }
-  };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthSubmitting(true);
     setAuthMessage(null);
 
-    // Validate passwords match
     if (signUpForm.password !== signUpForm.confirmPassword) {
       setAuthMessage({ type: 'error', text: 'Passwords do not match' });
       setAuthSubmitting(false);
       return;
     }
 
-    // Validate password length
     if (signUpForm.password.length < 8) {
       setAuthMessage({ type: 'error', text: 'Password must be at least 8 characters' });
       setAuthSubmitting(false);
@@ -234,7 +213,6 @@ export default function Home() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store session in localStorage
         localStorage.setItem('obvote_session', JSON.stringify(data.session));
         localStorage.setItem('obvote_user', JSON.stringify(data.user));
 
@@ -587,7 +565,7 @@ export default function Home() {
               marginBottom: '12px',
               color: '#202124'
             }}>
-              Active petitions
+              {landingContent.petitions.title}
             </h3>
             <p style={{
               fontSize: '16px',
@@ -595,155 +573,158 @@ export default function Home() {
               maxWidth: '600px',
               margin: '0 auto'
             }}>
-              Current proposals from your condo board
+              {landingContent.petitions.subtitle}
             </p>
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-            gap: '24px',
-            marginBottom: '40px'
-          }}>
-            {petitions.map(petition => {
-              const isSigned = signedPetitions.has(petition.id);
-              return (
-                <div
-                  key={petition.id}
-                  style={{
-                    background: 'white',
-                    border: '1px solid #dadce0',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer',
-                    position: 'relative'
-                  }}
-                  onClick={() => togglePetitionSign(petition.id)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden' }}>
-                    <Image
-                      src={petition.image}
-                      alt={petition.title}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
-                    {isSigned && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        background: '#34a853',
-                        color: 'white',
-                        borderRadius: '20px',
-                        padding: '6px 12px',
+
+          {loadingPetitions ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#5f6368' }}>
+              Loading petitions...
+            </div>
+          ) : petitions.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '60px 40px',
+              background: '#f8f9fa',
+              borderRadius: '12px',
+              border: '1px solid #e8eaed'
+            }}>
+              <FiCheckCircle size={48} style={{ color: '#5f6368', marginBottom: '16px' }} />
+              <p style={{ fontSize: '16px', color: '#5f6368' }}>
+                No active petitions at the moment. Check back soon!
+              </p>
+            </div>
+          ) : (
+            <>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                gap: '24px',
+                marginBottom: '40px'
+              }}>
+                {petitions.map(petition => {
+                  const userSigned = userSignedPetitions.has(petition.id);
+                  const placeholderImage = 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=500&fit=crop';
+                  const petitionImage = petition.imageUrl || placeholderImage;
+
+                  return (
+                    <div
+                      key={petition.id}
+                      style={{
+                        background: 'white',
+                        border: '1px solid #dadce0',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                        position: 'relative',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                      }}>
-                        <FiCheck size={14} strokeWidth={3} />
-                        Signed
+                        flexDirection: 'column'
+                      }}
+                      onClick={() => handleViewPetition(petition)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      {/* Petition Image */}
+                      <div style={{ position: 'relative', width: '100%', height: '180px', overflow: 'hidden' }}>
+                        <Image
+                          src={petitionImage}
+                          alt={petition.title}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                        />
+                        {userSigned && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            background: '#34a853',
+                            color: 'white',
+                            borderRadius: '20px',
+                            padding: '6px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                          }}>
+                            <FiCheck size={14} strokeWidth={3} />
+                            Signed
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div style={{
-                    padding: '24px',
-                    opacity: isSigned ? 0.6 : 1,
-                    filter: isSigned ? 'grayscale(0.3)' : 'none'
-                  }}>
-                    <h4 style={{
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      marginBottom: '10px',
-                      color: '#202124',
-                      lineHeight: 1.3
-                    }}>
-                      {petition.title}
-                    </h4>
-                    <p style={{
-                      fontSize: '14px',
-                      color: '#5f6368',
-                      marginBottom: '16px',
-                      lineHeight: 1.6,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {petition.snippet}
-                    </p>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      paddingTop: '16px',
-                      borderTop: '1px solid #e8eaed'
-                    }}>
-                      <span style={{
-                        fontSize: '13px',
-                        color: '#5f6368',
+
+                      <div style={{
+                        padding: '20px',
+                        flex: 1
+                      }}>
+                        <h4 style={{
+                          fontSize: '18px',
+                          fontWeight: 500,
+                          marginBottom: '10px',
+                          color: '#202124',
+                          lineHeight: 1.3
+                        }}>
+                          {petition.title}
+                        </h4>
+                        <p style={{
+                          fontSize: '14px',
+                          color: '#5f6368',
+                          lineHeight: 1.6,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {petition.content}
+                        </p>
+                      </div>
+                      <div style={{
+                        padding: '16px 20px',
+                        borderTop: '1px solid #e8eaed',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px'
+                        justifyContent: 'space-between',
+                        gap: '12px'
                       }}>
-                        <FiTrendingUp size={14} />
-                        {petition.signatures.toLocaleString()} signatures
-                      </span>
-                      <button
-                        className="btn btn-primary"
-                        style={{
-                          padding: '8px 20px',
+                        <span style={{
                           fontSize: '13px',
-                          fontWeight: 500,
-                          opacity: isSigned ? 0.5 : 1,
-                          cursor: isSigned ? 'not-allowed' : 'pointer'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isSigned) {
-                            togglePetitionSign(petition.id);
-                          }
-                        }}
-                        disabled={isSigned}
-                      >
-                        {isSigned ? 'Signed' : 'Sign petition'}
-                      </button>
+                          color: '#5f6368',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <FiTrendingUp size={14} />
+                          {petition.signatureCount.toLocaleString()} {landingContent.petitions.signaturesLabel}
+                        </span>
+                        <button
+                          className="btn btn-primary"
+                          style={{
+                            padding: '8px 20px',
+                            fontSize: '13px',
+                            fontWeight: 500
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewPetition(petition);
+                          }}
+                        >
+                          {userSigned ? 'View' : landingContent.petitions.viewButton}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ textAlign: 'center', marginTop: '40px' }}>
-            <button
-              style={{
-                padding: '12px 32px',
-                fontSize: '15px',
-                background: 'transparent',
-                border: '1px solid #dadce0',
-                color: 'var(--primary)',
-                cursor: 'pointer',
-                fontWeight: 500,
-                borderRadius: '8px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f8f9fa'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              View all petitions
-            </button>
-          </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </section>
 
         {/* Contact Form */}
@@ -961,11 +942,42 @@ export default function Home() {
 
       <SignInModal
         isOpen={showSignInModal}
-        onClose={closeSignInModal}
-        onSuccess={() => setShowSignInModal(false)}
+        onClose={() => setShowSignInModal(false)}
+        onSuccess={() => {
+          setShowSignInModal(false);
+          fetchPetitions();
+        }}
         onForgotPassword={() => {
           setShowSignInModal(false);
           setShowForgotPasswordModal(true);
+        }}
+      />
+
+      <PetitionViewModal
+        petition={selectedPetition}
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedPetition(null);
+        }}
+        onSignClick={handleContinueToSign}
+        isSignedIn={isSignedIn}
+        userAlreadySigned={selectedPetition ? userSignedPetitions.has(selectedPetition.id) : false}
+      />
+
+      <PetitionSignModal
+        petition={selectedPetition}
+        userInfo={currentUser}
+        isOpen={showSignModal}
+        onClose={() => {
+          setShowSignModal(false);
+          setSelectedPetition(null);
+        }}
+        onSuccess={() => {
+          setShowSignModal(false);
+          setSelectedPetition(null);
+          fetchPetitions();
+          fetchUserSignatures();
         }}
       />
 

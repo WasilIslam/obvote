@@ -91,7 +91,7 @@
   },
   "petitions": {
     "title": "Active Petitions",
-    "subtitle": "Community proposals currently open for voting",
+    "subtitle": "Community proposals currently open for signatures",
     "viewButton": "View Petition",
     "signButton": "Sign Petition",
     "unsignButton": "Unsign",

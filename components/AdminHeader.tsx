@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FiKey, FiMail } from 'react-icons/fi';
+import { FiKey, FiMail, FiFileText } from 'react-icons/fi';
 import Logo from './Logo';
 
 export default function AdminHeader() {
@@ -23,6 +23,31 @@ export default function AdminHeader() {
         <Logo href="/admin" size="small" />
 
         <nav style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Link
+            href="/admin/petitions"
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--background-soft)';
+              e.currentTarget.style.color = 'var(--primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
+          >
+            <FiFileText size={16} />
+            Petitions
+          </Link>
           <Link
             href="/admin/units"
             style={{

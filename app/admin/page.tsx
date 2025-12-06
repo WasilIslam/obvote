@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FiKey, FiMail, FiUsers, FiBarChart2, FiSettings } from 'react-icons/fi';
+import { FiKey, FiMail, FiFileText, FiUsers, FiBarChart2, FiSettings } from 'react-icons/fi';
 import styles from './page.module.css';
 
 export default function AdminPage() {
@@ -13,6 +13,16 @@ export default function AdminPage() {
       </div>
 
       <div className={styles.grid}>
+        <Link href="/admin/petitions" className={styles.card}>
+          <div className={styles.cardIcon}>
+            <FiFileText size={32} />
+          </div>
+          <h2 className={styles.cardTitle}>Petitions</h2>
+          <p className={styles.cardDescription}>
+            Create and manage petitions with cryptographically-secure signatures and full audit trails.
+          </p>
+        </Link>
+
         <Link href="/admin/units" className={styles.card}>
           <div className={styles.cardIcon}>
             <FiKey size={32} />

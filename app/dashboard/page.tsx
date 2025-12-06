@@ -18,10 +18,20 @@ interface Unit {
   createdAt: string;
 }
 
+interface Signature {
+  eventId: string;
+  petitionId: string;
+  petitionTitleSnapshot: string;
+  petitionVersionSigned: number;
+  signedAtUtc: string;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [unit, setUnit] = useState<Unit | null>(null);
+  const [signatures, setSignatures] = useState<Signature[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingSignatures, setLoadingSignatures] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('obvote_user');
@@ -39,11 +49,29 @@ export default function DashboardPage() {
       } else {
         setLoading(false);
       }
+
+      fetchUserSignatures(userData.id);
     } catch (error) {
       console.error('Error loading user data:', error);
       window.location.href = '/';
     }
   }, []);
+
+  const fetchUserSignatures = async (userId: string) => {
+    try {
+      setLoadingSignatures(true);
+      const response = await fetch(`/api/user/signatures?userId=${userId}`);
+      const data = await response.json();
+
+      if (response.ok && data.signatures) {
+        setSignatures(data.signatures);
+      }
+    } catch (error) {
+      console.error('Error fetching signatures:', error);
+    } finally {
+      setLoadingSignatures(false);
+    }
+  };
 
   const fetchUnitInfo = async (unitId: string) => {
     try {
@@ -261,54 +289,120 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Petitions */}
+        {/* My Signatures */}
         <div style={{
           background: '#fff',
           border: '1px solid #e0e0e0',
           borderRadius: '8px',
-          padding: '48px 32px',
-          marginBottom: '24px',
-          textAlign: 'center'
+          padding: '32px',
+          marginBottom: '24px'
         }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: '#f5f5f5',
-            borderRadius: '50%',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '20px'
-          }}>
-            <FiFileText size={32} color="#ccc" />
-          </div>
-          <p style={{ color: '#666', fontSize: '16px', marginBottom: '24px' }}>
-            No active petitions at the moment
-          </p>
-          <Link
-            href="/"
-            style={{
-              display: 'inline-flex',
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              background: '#fbbc04',
+              borderRadius: '8px',
+              display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '12px 24px',
-              background: '#1a73e8',
-              color: '#fff',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'background 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#1666d6'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
-          >
-            <FiFileText size={16} />
-            Browse Petitions
-          </Link>
+              justifyContent: 'center'
+            }}>
+              <FiFileText size={24} color="#fff" />
+            </div>
+            <h2 style={{ fontSize: '20px', fontWeight: 500, color: '#000' }}>My Signatures</h2>
+          </div>
+
+          {loadingSignatures ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+              Loading signatures...
+            </div>
+          ) : signatures.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <FiFileText size={48} color="#ccc" style={{ marginBottom: '16px' }} />
+              <p style={{ color: '#666', fontSize: '15px', marginBottom: '16px' }}>
+                You haven't signed any petitions yet
+              </p>
+              <Link
+                href="/#petitions"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  background: '#1a73e8',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#1666d6'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
+              >
+                Browse Petitions
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {signatures.map((sig) => (
+                <div
+                  key={sig.eventId}
+                  style={{
+                    padding: '16px 20px',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    transition: 'all 0.2s',
+                    cursor: 'default'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f8f9fa';
+                    e.currentTarget.style.borderColor = '#dadce0';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.borderColor = '#e0e0e0';
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: 500, color: '#202124', marginBottom: '4px' }}>
+                      {sig.petitionTitleSnapshot}
+                    </h4>
+                    <p style={{ fontSize: '13px', color: '#5f6368' }}>
+                      Signed {new Date(sig.signedAtUtc).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    background: '#e6f4ea',
+                    color: '#137333',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 500
+                  }}>
+                    <FiCheck size={14} />
+                    Signed
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Removed Petitions section above this */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
